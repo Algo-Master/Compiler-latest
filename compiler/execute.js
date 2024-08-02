@@ -68,7 +68,7 @@ const executecpp = (filePath, inputFilePath) => {
   const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && ./${jobId}.out < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
-    executeCommand(command, 2000, 64)
+    executeCommand(command, timeLimit = 2000, memoryLimit = 64)
       .then((stdout) => {
         const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
         resolve(normalizedOutput);
@@ -88,7 +88,7 @@ const executejava = (filePath, inputFilePath) => {
   const command = `java ${filePath.replace(".java", "")} < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
-    executeCommand(command, 2000, 64)
+    executeCommand(command, timeLimit = 2000, memoryLimit = 64)
       .then((stdout) => {
         const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
         resolve(normalizedOutput);
@@ -107,7 +107,7 @@ const executePy = (filePath, inputFilePath) => {
   const command = `python3 ${filePath} < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
-    executeCommand(command, 2000, 64)
+    executeCommand(command, timeLimit = 2000, memoryLimit = 64)
       .then((stdout) => {
         const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
         resolve(normalizedOutput);

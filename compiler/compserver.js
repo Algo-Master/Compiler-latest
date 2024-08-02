@@ -137,13 +137,13 @@ app.post("/submit", async (req, res) => {
         let output;
         switch (lang) {
           case "C++":
-            output = await executecpp(filePath, inputFilePath);
+            output = await executecpp(filePath, inputFilePath, problem.timel, problem.meml);
             break;
           case "Java":
-            output = await executejava(filePath, inputFilePath);
+            output = await executejava(filePath, inputFilePath, problem.timel, problem.meml);
             break;
           case "Python3":
-            output = await executePy(filePath, inputFilePath);
+            output = await executePy(filePath, inputFilePath, problem.timel, problem.meml);
             break;
           default:
             return res
