@@ -30,7 +30,7 @@ const { generateFile } = require("./generateFile");
 const { executecpp, executejava, executePy } = require("./execute");
 
 app.get("/", (req, res) => {
-  res.json({ OS: "Running on Ubuntu Linus", compilers: "g++, JAVA 21, python3"});
+  res.json({ OS: "Running on Ubuntu Linux", Compilers_supported: "g++, JAVA 21, python3"});
 });
 
 app.post("/run", async (req, res) => {

@@ -8,6 +8,54 @@ if (!fs.existsSync(outputPath)) {
   fs.mkdirSync(outputPath, { recursive: true });
 }
 
+const executeCommand = (command, timeLimit, memoryLimit) => {
+  return new Promise((resolve, reject) => {
+    const options = {
+      timeout: timeLimit, // Time limit in milliseconds
+      maxBuffer: memoryLimit * 1024 * 1024, // Memory limit in bytes only for the stdout i.e. the process ends if std size is larger than memory limit
+    };
+
+    const child = exec(command, options, (error, stdout, stderr) => {
+      if (error) {
+        if (error.killed) {
+          return reject(new Error("Execution time exceeded the limit"));
+        }
+        if (error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER") {
+          return reject(new Error("Memory limit exceeded"));
+        }
+        return reject(error);
+      }
+      if (stderr) {
+        return reject(new Error(stderr));
+      }
+      resolve(stdout);
+    });
+
+    // Monitor Total Memory usage of the child process every 100 milliseconds
+    const checkMemoryUsage = setInterval(() => {
+      if (!child.pid) return;
+
+      try {
+        const memoryUsage = process.memoryUsage().heapUsed / 1024 / 1024; // in MB
+        if (memoryUsage > memoryLimit) {
+          child.kill();
+          clearInterval(checkMemoryUsage);
+          reject(new Error("Memory limit exceeded"));
+        }
+      } catch (err) {
+        child.kill();
+        clearInterval(checkMemoryUsage);
+        reject(new Error("Memory usage check failed"));
+      }
+    }, 100);
+
+    // Additional safety measures
+    child.on("exit", () => {
+      clearInterval(checkMemoryUsage);
+    });
+  });
+};
+
 // executecpp.js
 const executecpp = (filePath, inputFilePath) => {
   const jobId = path.basename(filePath).split(".")[0];
@@ -16,60 +64,62 @@ const executecpp = (filePath, inputFilePath) => {
   const exedir = path.join(__dirname, `executables`);
   const executable = path.join(exedir, outputFilename);
 
+  const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && ./${jobId}.out < ${inputFilePath}`;
+
   return new Promise((resolve, reject) => {
-    exec(
-      // `g++ ${filePath} -o ${outPath} && cd ${outputPath} && .\\${outputFilename} < ${inputFilePath}`,
-      `g++ ${filePath} -o ${outPath} && cd ${outputPath} && ./${jobId}.out < ${inputFilePath}`,
-      (error, stdout, stderr) => {
-        fs.unlinkSync(executable);
+    executeCommand(command, 2000, 64)
+      .then((stdout) => {
+        const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
+        resolve(normalizedOutput);
+      })
+      .catch((error) => {
+        reject(error);
+      })
+      .finally(() => {
         fs.unlinkSync(inputFilePath);
-        if (error) reject(error);
-        else if (stderr) reject(stderr);
-        else {
-          // Normalize line endings to '\n'
-          const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
-          resolve(normalizedOutput);
-        }
-      }
-    );
+        fs.unlinkSync(executable);
+      });
   });
 };
 
 // executejava.js
 const executejava = (filePath, inputFilePath) => {
-  // const jobId = path.basename(filePath).split(".")[0];
-  // const outputFilename = `${jobId}.java`;
+  const command = `javac ${filePath} && java ${filePath.replace(
+    ".java",
+    ""
+  )} < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
-    exec(`java ${filePath} < ${inputFilePath}`, (error, stdout, stderr) => {
-      fs.unlinkSync(inputFilePath);
-      if (error) {
+    executeCommand(command, 2000, 64)
+      .then((stdout) => {
+        const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
+        resolve(normalizedOutput);
+      })
+      .catch((error) => {
         reject(error);
-      }
-      if (stderr) {
-        reject(stderr);
-      }
-      // Normalize line endings to '\n'
-      const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
-      resolve(normalizedOutput);
-    });
+      })
+      .finally(() => {
+        fs.unlinkSync(inputFilePath);
+      });
   });
 };
 
 // executePy.js
 const executePy = (filePath, inputFilePath) => {
-  console.log(`python ${filePath} < ${inputFilePath}`);
+  const command = `python3 ${filePath} < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
-    exec(`python ${filePath} < ${inputFilePath}`, (error, stdout, stderr) => {
-      fs.unlinkSync(inputFilePath);
-      if (error) reject(error);
-      else if (stderr) reject(stderr);
-      else {
+    executeCommand(command, 2000, 64)
+      .then((stdout) => {
         const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
         resolve(normalizedOutput);
-      }
-    });
+      })
+      .catch((error) => {
+        reject(error);
+      })
+      .finally(() => {
+        fs.unlinkSync(inputFilePath);
+      });
   });
 };
 
