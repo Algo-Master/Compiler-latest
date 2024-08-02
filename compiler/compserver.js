@@ -6,7 +6,6 @@ const { generateInputFile } = require("./generateInputFile");
 const { authenticate } = require("./auth");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const fs = require("fs");
 
 const corsOptions = {
   origin: "http://localhost:5173", // Replace with your frontend origin
@@ -30,29 +29,35 @@ const { generateFile } = require("./generateFile");
 const { executecpp, executejava, executePy } = require("./execute");
 
 app.get("/", (req, res) => {
-  res.json({ OS: "Running on Ubuntu Linux", Compilers_supported: "g++, JAVA 21, python3"});
+  res.json({
+    OS: "Running on Ubuntu Linux",
+    Compilers_supported: "g++, JAVA 21, python3",
+  });
 });
 
 app.post("/run", async (req, res) => {
   const token = req.cookies?.token;
   const { language = "C++", code, manualTestCase: input } = req.body;
   if (!code) {
-    return res.status(401).json({ success: false, error: "Code not found" }); // success-> use in production grade
+    return res.status(400).json({ success: false, error: "Code not found" });
   }
   if (!input) {
-    return res.status(401).json({ success: false, error: "Input not found" }); // success-> use in production grade
+    return res.status(400).json({ success: false, error: "Input not found" });
   }
   if (!token) {
-    return res.status(401).json({ error: "False Authentication" });
+    return res
+      .status(401)
+      .json({ success: false, error: "Unauthorized access" });
   }
+
   const verified = authenticate(token);
   switch (verified) {
     case 0:
-      return res.status(400).json({ error: "Token has been tampered with" });
+      return res.status(400).json({ error: "Token tampered" });
     case 2:
       return res
         .status(401)
-        .json({ error: "Token expired. Please log in again." });
+        .json({ error: "Token expired!! Please log in again." });
   }
 
   try {
@@ -60,7 +65,7 @@ app.post("/run", async (req, res) => {
     const filePath = await generateFile(language, code);
     //Create a file for CustomInput
     const inputFilePath = await generateInputFile(input, filePath);
-    console.log("Generating the code file and the input file is alright");
+
     let output;
     switch (language) {
       case "C++":
@@ -77,21 +82,39 @@ app.post("/run", async (req, res) => {
           .status(400)
           .json({ success: false, error: "Unsupported language" });
     }
-    res.status(200).json({ success: true, filePath, output });
+    res.status(200).json({ success: true, output });
   } catch (error) {
-    console.log("Error generating and executing file: ", error);
-    res
-      .status(400)
-      .json({ success: false, message: error });
+    let status = 400;
+    if (error.message.includes("time")) {
+      status = 408; // Request Timeout
+    } else if (error.message.includes("Memory")) {
+      status = 413; // Payload Too Large
+    }
+    res.status(status).json({ success: false, message: error.message });
   }
 });
 
 app.post("/submit", async (req, res) => {
+  const token = req.cookies?.token;
   const { lang = "C++", code, problemId } = req.body;
 
   if (!code) {
-    console.log("Code not present");
-    return res.status(401).json({ success: false, error: "Code not found" });
+    return res.status(400).json({ success: false, error: "Code not found" });
+  }
+  if (!token) {
+    return res
+      .status(401)
+      .json({ success: false, error: "Unauthorized access" });
+  }
+
+  const verified = authenticate(token);
+  switch (verified) {
+    case 0:
+      return res.status(400).json({ error: "Token tampered" });
+    case 2:
+      return res
+        .status(401)
+        .json({ error: "Token expired!! Please log in again." });
   }
 
   try {
@@ -138,11 +161,17 @@ app.post("/submit", async (req, res) => {
           return res.status(200).json({
             success: false,
             verdict: "Wrong Answer",
-            failedTestCase: expectedOutput,
+            failedTestCase: testcase.testinput,
           });
         }
       } catch (error) {
-        return res.status(400).json({
+        let status = 400;
+        if (error.message.includes("time")) {
+          status = 408; // Request Timeout
+        } else if (error.message.includes("Memory")) {
+          status = 413; // Payload Too Large
+        }
+        return res.status(status).json({
           success: false,
           error: error.message,
           verdict: error.message,

@@ -64,6 +64,7 @@ const executecpp = (filePath, inputFilePath) => {
   const exedir = path.join(__dirname, `executables`);
   const executable = path.join(exedir, outputFilename);
 
+  // const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && .\\${outputFilename} < ${inputFilePath}`;
   const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && ./${jobId}.out < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
@@ -84,10 +85,7 @@ const executecpp = (filePath, inputFilePath) => {
 
 // executejava.js
 const executejava = (filePath, inputFilePath) => {
-  const command = `javac ${filePath} && java ${filePath.replace(
-    ".java",
-    ""
-  )} < ${inputFilePath}`;
+  const command = `java ${filePath.replace(".java", "")} < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
     executeCommand(command, 2000, 64)
