@@ -59,13 +59,14 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
 // executecpp.js
 const executecpp = (filePath, inputFilePath) => {
   const jobId = path.basename(filePath).split(".")[0];
-  const outputFilename = `${jobId}.out`;
+  const outputFilename = `${jobId}.exe`;
+  // const outputFilename = `${jobId}.out`;
   const outPath = path.join(outputPath, outputFilename);
   const exedir = path.join(__dirname, `executables`);
   const executable = path.join(exedir, outputFilename);
 
-  // const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && .\\${outputFilename} < ${inputFilePath}`;
-  const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && ./${jobId}.out < ${inputFilePath}`;
+  const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && .\\${outputFilename} < ${inputFilePath}`;
+  // const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && ./${jobId}.out < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
     executeCommand(command, timeLimit = 2000, memoryLimit = 64)
@@ -85,7 +86,7 @@ const executecpp = (filePath, inputFilePath) => {
 
 // executejava.js
 const executejava = (filePath, inputFilePath) => {
-  const command = `java ${filePath.replace(".java", "")} < ${inputFilePath}`;
+  const command = `java ${filePath} < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
     executeCommand(command, timeLimit = 2000, memoryLimit = 64)
@@ -104,7 +105,7 @@ const executejava = (filePath, inputFilePath) => {
 
 // executePy.js
 const executePy = (filePath, inputFilePath) => {
-  const command = `python3 ${filePath} < ${inputFilePath}`;
+  const command = `python ${filePath} < ${inputFilePath}`;
 
   return new Promise((resolve, reject) => {
     executeCommand(command, timeLimit = 2000, memoryLimit = 64)
