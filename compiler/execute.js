@@ -65,6 +65,16 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
   });
 };
 
+const delete_temp = async (path_temp) => {
+  setTimeout(() => {
+    try {
+      fs.unlinkSync(path_temp);
+    } catch {
+      console.log("The File to be deleted doesn't exist")
+    }
+  }, 5000);
+}
+
 // executecpp.js
 const executecpp = async (filePath, inputFilePath) => {
   const jobId = path.basename(filePath).split(".")[0];
@@ -87,8 +97,8 @@ const executecpp = async (filePath, inputFilePath) => {
     })
     .finally(() => {
       // console.log("Unlink is earlier here");
-      fs.unlinkSync(inputFilePath);
-      fs.unlinkSync(executable);
+      delete_temp(inputFilePath);
+      delete_temp(executable);
     });
 };
 
@@ -105,7 +115,7 @@ const executejava = async (filePath, inputFilePath) => {
     throw error;
   })
   .finally(() => {
-    fs.unlinkSync(inputFilePath);
+    delete_temp(inputFilePath);
   });
 };
 
@@ -122,7 +132,7 @@ const executePy = async (filePath, inputFilePath) => {
     throw error;
   })
   .finally(() => {
-    fs.unlinkSync(inputFilePath);
+    delete_temp(inputFilePath);
   });
 };
 
