@@ -84,13 +84,8 @@ app.post("/run", async (req, res) => {
     }
     res.status(200).json({ success: true, output });
   } catch (error) {
-    let status = 400;
-    if (error.message.includes("time")) {
-      status = 408; // Request Timeout
-    } else if (error.message.includes("Memory")) {
-      status = 413; // Payload Too Large
-    }
-    res.status(status).json({ success: false, message: error.message });
+    // Always send 200 status with error messages for frontend understanding
+    res.status(200).json({ success: false, message: error.message });
   }
 });
 

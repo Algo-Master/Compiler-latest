@@ -15,7 +15,16 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
       maxBuffer: memoryLimit * 1024 * 1024, // Memory limit in bytes only for the stdout i.e. the process ends if std size is larger than memory limit
     };
 
+    // Compiler Performance Evaluation
+    const start_time = performance.now();
+
     const child = exec(command, options, (error, stdout, stderr) => {
+      // console.log("executeCommand is earlier here");
+
+      // Checking the performance of Compiler
+      const end_time = performance.now();
+      console.log(`Time taken: ${end_time - start_time}`);
+
       if (error) {
         if (error.killed) {
           return reject(new Error("Execution time exceeded the limit"));
@@ -57,7 +66,7 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
 };
 
 // executecpp.js
-const executecpp = (filePath, inputFilePath) => {
+const executecpp = async (filePath, inputFilePath) => {
   const jobId = path.basename(filePath).split(".")[0];
   const outputFilename = `${jobId}.exe`;
   // const outputFilename = `${jobId}.out`;
@@ -68,57 +77,52 @@ const executecpp = (filePath, inputFilePath) => {
   const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && .\\${outputFilename} < ${inputFilePath}`;
   // const command = `g++ ${filePath} -o ${outPath} && cd ${outputPath} && ./${jobId}.out < ${inputFilePath}`;
 
-  return new Promise((resolve, reject) => {
-    executeCommand(command, timeLimit = 2000, memoryLimit = 64)
-      .then((stdout) => {
-        const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
-        resolve(normalizedOutput);
-      })
-      .catch((error) => {
-        reject(error);
-      })
-      .finally(() => {
-        fs.unlinkSync(inputFilePath);
-        fs.unlinkSync(executable);
-      });
-  });
+  return await executeCommand(command, (timeLimit = 2000), (memoryLimit = 64))
+    .then((stdout) => {
+      const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
+      return normalizedOutput;
+    })
+    .catch((error) => {
+      throw error;
+    })
+    .finally(() => {
+      // console.log("Unlink is earlier here");
+      fs.unlinkSync(inputFilePath);
+      fs.unlinkSync(executable);
+    });
 };
 
 // executejava.js
-const executejava = (filePath, inputFilePath) => {
+const executejava = async (filePath, inputFilePath) => {
   const command = `java ${filePath} < ${inputFilePath}`;
 
-  return new Promise((resolve, reject) => {
-    executeCommand(command, timeLimit = 2000, memoryLimit = 64)
-      .then((stdout) => {
-        const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
-        resolve(normalizedOutput);
-      })
-      .catch((error) => {
-        reject(error);
-      })
-      .finally(() => {
-        fs.unlinkSync(inputFilePath);
-      });
+  return await executeCommand(command, (timeLimit = 2000), (memoryLimit = 64))
+  .then((stdout) => {
+    const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
+    return normalizedOutput;
+  })
+  .catch((error) => {
+    throw error;
+  })
+  .finally(() => {
+    fs.unlinkSync(inputFilePath);
   });
 };
 
 // executePy.js
-const executePy = (filePath, inputFilePath) => {
+const executePy = async (filePath, inputFilePath) => {
   const command = `python ${filePath} < ${inputFilePath}`;
 
-  return new Promise((resolve, reject) => {
-    executeCommand(command, timeLimit = 2000, memoryLimit = 64)
-      .then((stdout) => {
-        const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
-        resolve(normalizedOutput);
-      })
-      .catch((error) => {
-        reject(error);
-      })
-      .finally(() => {
-        fs.unlinkSync(inputFilePath);
-      });
+  return await executeCommand(command, (timeLimit = 2000), (memoryLimit = 64))
+  .then((stdout) => {
+    const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
+    return normalizedOutput;
+  })
+  .catch((error) => {
+    throw error;
+  })
+  .finally(() => {
+    fs.unlinkSync(inputFilePath);
   });
 };
 
