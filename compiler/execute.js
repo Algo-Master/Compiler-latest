@@ -101,16 +101,16 @@ const executecpp = async (filePath, inputFilePath, timeLimit = 4000, memoryLimit
     })
     .finally(() => {
       // console.log("Unlink is earlier here");
-      delete_temp(inputFilePath);
+      delete_temp(inputFilePath, timeLimit + 1000);
       delete_temp(executable, timeLimit + 1000);
     });
 };
 
 // executejava.js
-const executejava = async (filePath, inputFilePath) => {
+const executejava = async (filePath, inputFilePath, timeLimit = 4000, memoryLimit = 64) => {
   const command = `java ${filePath} < ${inputFilePath}`;
 
-  return await executeCommand(command, (timeLimit = 2000), (memoryLimit = 64))
+  return await executeCommand(command, timeLimit, memoryLimit)
   .then((stdout) => {
     const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
     return normalizedOutput;
@@ -119,15 +119,15 @@ const executejava = async (filePath, inputFilePath) => {
     throw error;
   })
   .finally(() => {
-    delete_temp(inputFilePath);
+    delete_temp(inputFilePath, timeLimit + 1000);
   });
 };
 
 // executePy.js
-const executePy = async (filePath, inputFilePath) => {
+const executePy = async (filePath, inputFilePath, timeLimit = 4000, memoryLimit = 64) => {
   const command = `python ${filePath} < ${inputFilePath}`;
 
-  return await executeCommand(command, (timeLimit = 2000), (memoryLimit = 64))
+  return await executeCommand(command, timeLimit, memoryLimit)
   .then((stdout) => {
     const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
     return normalizedOutput;
@@ -136,7 +136,7 @@ const executePy = async (filePath, inputFilePath) => {
     throw error;
   })
   .finally(() => {
-    delete_temp(inputFilePath);
+    delete_temp(inputFilePath, timeLimit + 1000);
   });
 };
 
