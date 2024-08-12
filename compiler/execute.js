@@ -48,6 +48,15 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
       resolve(stdout);
     });
 
+    // setTimeout(() => {
+    //   try {
+    //     console.log("Trying to kill the Child_Process!!");
+    //     child.kill();
+    //   } catch {
+    //     console.log("Child_Process is not getting killed!!");
+    //   }
+    // }, timeLimit);
+
     // Monitor Total Memory usage of the child process every 100 milliseconds
     const checkMemoryUsage = setInterval(() => {
       if (!child.pid) return;
