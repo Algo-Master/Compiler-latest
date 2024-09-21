@@ -29,8 +29,8 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
 
       // Memory Statistics
       const endMemoryUsage = process.memoryUsage().heapUsed;
-      const memoryDifference = endMemoryUsage - startMemoryUsage;
-      console.log(`Memory used: ${memoryDifference / 1024 / 1024} MB`);
+      const memoryDifference = (endMemoryUsage - startMemoryUsage) / 1024 / 1024;
+      console.log(`Memory used: ${memoryDifference} MB`);
 
       clearTimeout(timeoutId); // Clear the timeout after execution finishes
 
@@ -44,7 +44,7 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
         return reject(stderr);
       }
       // Resolve both output and elapsedTimeMs
-      resolve({ output: stdout, elapsedTimeMs });
+      resolve({ output: stdout, elapsedTimeMs, memoryDifference });
     });
 
     // Checks to ensure if Time Limits are managed well
@@ -62,18 +62,6 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
       return reject("Time Limit Exceeded");
     }, timeLimit);
   });
-};
-
-const delete_temp = async (path_temp, del_time) => {
-  setTimeout(() => {
-    try {
-      fs.unlinkSync(path_temp);
-    } catch {
-      console.log(
-        `The File ${path_temp} to be deleted doesn't exist or is busy getting executed!!`
-      );
-    }
-  }, del_time);
 };
 
 // executecpp
@@ -109,23 +97,17 @@ const executecpp = async (
     // Execute the compiled code
     const runCommand = `${execfile} < ${inputFilePath}`;
     // const runcommand = `./${jobId}.out < ${inputFilePath}`;
-    const { output, elapsedTimeMs } = await executeCommand(
+    const { output, elapsedTimeMs, memoryDifference } = await executeCommand(
       runCommand,
       timeLimit * 1000,
       memoryLimit
     );
 
-    // Clean up temporary files
-    delete_temp(inputFilePath, 0);
-    delete_temp(executable, 0);
-
     const normalizedOutput = output.replace(/\r\n/g, "\n").trim();
 
     // Return both normalizedOutput and elapsedTimeMs
-    return { output: normalizedOutput, elapsedTimeMs };
+    return { output: normalizedOutput, elapsedTimeMs, memoryDifference };
   } catch (error) {
-    delete_temp(inputFilePath, 500);
-    delete_temp(executable, 500);
     throw error;
   }
 };
@@ -140,21 +122,17 @@ const executejava = async (
   try {
     const command = `java ${filePath} < ${inputFilePath}`;
 
-    const { output, elapsedTimeMs } = await executeCommand(
+    const { output, elapsedTimeMs, memoryDifference } = await executeCommand(
       command,
       4000,
       memoryLimit
     );
 
-    // Clean up temporary files
-    delete_temp(inputFilePath, 0);
-
     const normalizedOutput = output.replace(/\r\n/g, "\n").trim();
 
     // Return both normalizedOutput and elapsedTimeMs
-    return { output: normalizedOutput, elapsedTimeMs };
+    return { output: normalizedOutput, elapsedTimeMs, memoryDifference };
   } catch (error) {
-    delete_temp(inputFilePath, 500);
     throw error;
   }
 };
@@ -169,21 +147,17 @@ const executePy = async (
   try {
     const command = `python ${filePath} < ${inputFilePath}`;
 
-    const { output, elapsedTimeMs } = await executeCommand(
+    const { output, elapsedTimeMs, memoryDifference } = await executeCommand(
       command,
       4000,
       memoryLimit
     );
-
-    // Clean up temporary files
-    delete_temp(inputFilePath, 0);
     
     const normalizedOutput = output.replace(/\r\n/g, "\n").trim();
 
     // Return both normalizedOutput and elapsedTimeMs
-    return { output: normalizedOutput, elapsedTimeMs };
+    return { output: normalizedOutput, elapsedTimeMs, memoryDifference };
   } catch (error) {
-    delete_temp(inputFilePath, 500);
     throw error;
   }
 };

@@ -28,6 +28,18 @@ dotenv.config();
 const { generateFile } = require("./generateFile");
 const { executecpp, executejava, executePy } = require("./execute");
 
+const delete_temp = async (path_temp, del_time) => {
+  setTimeout(() => {
+    try {
+      fs.unlinkSync(path_temp);
+    } catch {
+      console.log(
+        `The File ${path_temp} to be deleted doesn't exist or is busy getting executed!!`
+      );
+    }
+  }, del_time);
+};
+
 app.get("/", (req, res) => {
   res.json({
     OS: "Running on Ubuntu Linux",
@@ -83,12 +95,19 @@ app.post("/run", async (req, res) => {
           .json({ success: false, error: "Unsupported language" });
     }
 
-    const { output, elapsedTimeMs } = result;
+    const { output, elapsedTimeMs, memoryDifference } = result;
 
-    res.status(200).json({ success: true, output, elapsedTimeMs });
+    // Clear away the temporary files
+    // await delete_temp(filePath, 2000);
+    // await delete_temp(inputFilePath, 2000);
+
+    res.status(200).json({ success: true, output, elapsedTimeMs, memoryOcc: memoryDifference});
   } catch (error) {
+    // await delete_temp(filePath, 2000);
+    // await delete_temp(inputFilePath, 2000);
+
     // Always send 200 status with error messages for frontend understanding
-    res.status(200).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: error });
   }
 });
 
@@ -101,7 +120,7 @@ app.post("/submit", async (req, res) => {
   }
   if (!token) {
     return res
-      .status(401)
+      .status(400)
       .json({ success: false, error: "Unauthorized access" });
   }
 
@@ -111,7 +130,7 @@ app.post("/submit", async (req, res) => {
       return res.status(400).json({ error: "Token tampered" });
     case 2:
       return res
-        .status(401)
+        .status(400)
         .json({ error: "Token expired!! Please log in again." });
   }
 
@@ -126,6 +145,7 @@ app.post("/submit", async (req, res) => {
     const filePath = await generateFile(language, code);
 
     let totalElapsedTime = 0; // To keep track of total execution time
+    let totalMemoryUsed = 0; // To keep track of total memory
 
     for (const testcase of problem.testcases) {
       const inputFilePath = await generateInputFile(
@@ -151,7 +171,7 @@ app.post("/submit", async (req, res) => {
               .json({ success: false, error: "Unsupported language" });
         }
 
-        const { output, elapsedTimeMs } = result;
+        const { output, elapsedTimeMs, memoryDifference } = result;
 
         // Normalize and compare output
         const cleanedOutput = output.trim();
@@ -160,7 +180,7 @@ app.post("/submit", async (req, res) => {
           .trim();
 
         if (cleanedOutput !== expectedOutput) {
-          return res.status(200).json({
+          return res.status(400).json({
             success: false,
             verdict: "Wrong Answer",
             failedTestCase: testcase.testinput,
@@ -169,14 +189,15 @@ app.post("/submit", async (req, res) => {
 
         // Add the execution time for this test case to the total
         totalElapsedTime += elapsedTimeMs;
+        totalMemoryUsed += memoryDifference;
       } catch (error) {
         // Handle specific errors
         let status = 400;
 
         return res.status(status).json({
           success: false,
-          error: error.message,
-          verdict: error.message,
+          error: error,
+          verdict: "Failed",
           failedTestCase: testcase.testinput,
         });
       }
@@ -186,10 +207,11 @@ app.post("/submit", async (req, res) => {
       success: true,
       verdict: "Accepted",
       output: "Accepted",
-      elapsedTime: totalElapsedTime
+      elapsedTime: totalElapsedTime,
+      memoryOcc: totalMemoryUsed
     });
   } catch (error) {
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error });
   }
 });
 
