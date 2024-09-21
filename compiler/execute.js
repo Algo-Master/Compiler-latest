@@ -43,15 +43,13 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
       if (stderr) {
         return reject(stderr);
       }
-      resolve(stdout);
+      // Resolve both output and elapsedTimeMs
+      resolve({ output: stdout, elapsedTimeMs });
     });
 
     // Checks to ensure if Time Limits are managed well
     const timeoutId = setTimeout(() => {
       console.log(`Child killed -> ${processx.killed}`);
-      const endTime = process.hrtime(startTime);
-      const elapsedTimeMs = endTime[0] * 1000 + endTime[1] / 1e6; // Convert to milliseconds
-      console.log(`Time elapsed from timeoutId: ${elapsedTimeMs} ms`);
       terminate(processx.pid, function (err) {
         if (err) {
           // you will get an error if you did not supply a valid process.pid
@@ -65,21 +63,6 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
     }, timeLimit);
   });
 };
-
-// async function myAsyncFunction() {
-//   try {
-//     const result = await executeCommand(
-//       "o:\\Web_DeV\\Compiler_latest\\compiler\\test\\cpp_test\\sum.exe < O:\\Web_DeV\\Compiler_latest\\compiler\\test\\cpp_test\\input.txt",
-//       1000,
-//       50
-//     );
-//     console.log(result);
-//   } catch (error) {
-//     console.error("Error:", error);
-//   }
-// }
-
-// myAsyncFunction();
 
 const delete_temp = async (path_temp, del_time) => {
   setTimeout(() => {
@@ -126,7 +109,7 @@ const executecpp = async (
     // Execute the compiled code
     const runCommand = `${execfile} < ${inputFilePath}`;
     // const runcommand = `./${jobId}.out < ${inputFilePath}`;
-    const output = await executeCommand(
+    const { output, elapsedTimeMs } = await executeCommand(
       runCommand,
       timeLimit * 1000,
       memoryLimit
@@ -137,57 +120,64 @@ const executecpp = async (
     delete_temp(executable, 0);
 
     const normalizedOutput = output.replace(/\r\n/g, "\n").trim();
-    return normalizedOutput;
-  } catch (error) {
 
+    // Return both normalizedOutput and elapsedTimeMs
+    return { output: normalizedOutput, elapsedTimeMs };
+  } catch (error) {
     delete_temp(inputFilePath, 500);
     delete_temp(executable, 500);
     throw error;
   }
 };
 
-// // executejava.js
-// const executejava = async (
-//   filePath,
-//   inputFilePath,
-//   timeLimit = 4000,
-//   memoryLimit = 64
-// ) => {
-//   const command = `java ${filePath} < ${inputFilePath}`;
+executejava.js;
+const executejava = async (
+  filePath,
+  inputFilePath,
+  timeLimit = 4000,
+  memoryLimit = 64
+) => {
+  try {
+    const command = `java ${filePath} < ${inputFilePath}`;
 
-//   await executeCommand(command, timeLimit, memoryLimit)
-//     .then((stdout) => {
-//       const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
-//       return normalizedOutput;
-//     })
-//     .catch((error) => {
-//       throw error;
-//     })
-//     .finally(() => {
-//       // delete_temp(inputFilePath, timeLimit + 100);
-//     });
-// };
+    const { output, elapsedTimeMs } = await executeCommand(
+      command,
+      4000,
+      memoryLimit
+    );
+    const normalizedOutput = output.replace(/\r\n/g, "\n").trim();
 
-// // executePy.js
-// const executePy = async (
-//   filePath,
-//   inputFilePath,
-//   timeLimit = 4000,
-//   memoryLimit = 64
-// ) => {
-//   const command = `python ${filePath} < ${inputFilePath}`;
+    // Return both normalizedOutput and elapsedTimeMs
+    return { output: normalizedOutput, elapsedTimeMs };
+  } catch (error) {
+    delete_temp(inputFilePath, 500);
+    throw error;
+  }
+};
 
-//   await executeCommand(command, timeLimit, memoryLimit)
-//     .then((stdout) => {
-//       const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
-//       return normalizedOutput;
-//     })
-//     .catch((error) => {
-//       throw error;
-//     })
-//     .finally(() => {
-//       // delete_temp(inputFilePath, timeLimit + 100);
-//     });
-// };
+// executePy.js
+const executePy = async (
+  filePath,
+  inputFilePath,
+  timeLimit = 4000,
+  memoryLimit = 64
+) => {
+  try {
+    const command = `python ${filePath} < ${inputFilePath}`;
 
-module.exports = { executecpp, executeCommand };
+    const { output, elapsedTimeMs } = await executeCommand(
+      command,
+      4000,
+      memoryLimit
+    );
+    const normalizedOutput = output.replace(/\r\n/g, "\n").trim();
+
+    // Return both normalizedOutput and elapsedTimeMs
+    return { output: normalizedOutput, elapsedTimeMs };
+  } catch (error) {
+    delete_temp(inputFilePath, 500);
+    throw error;
+  }
+};
+
+module.exports = { executecpp, executejava, executePy, executeCommand };
