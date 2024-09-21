@@ -72,8 +72,8 @@ const executecpp = async (
   memoryLimit = 64
 ) => {
   const jobId = path.basename(filePath).split(".")[0];
-  const outputFilename = `${jobId}.exe`;
-  // const outputFilename = `${jobId}.out`;
+  // const outputFilename = `${jobId}.exe`;
+  const outputFilename = `${jobId}.out`;
   const outPath = path.join(outputPath, outputFilename);
   const exedir = path.join(__dirname, `executables`);
   const executable = path.join(exedir, outputFilename);
@@ -91,8 +91,8 @@ const executecpp = async (
       });
     });
 
-    const execfile = path.join(exedir, `.\\${outputFilename}`);
-    // const execfile = path.join(exedir, `./${outputFilename}`);
+    // const execfile = path.join(exedir, `.\\${outputFilename}`);
+    const execfile = path.join(exedir, `./${outputFilename}`);
 
     // Execute the compiled code
     const runCommand = `${execfile} < ${inputFilePath}`;
