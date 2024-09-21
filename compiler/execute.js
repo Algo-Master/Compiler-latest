@@ -145,6 +145,10 @@ const executejava = async (
       4000,
       memoryLimit
     );
+
+    // Clean up temporary files
+    delete_temp(inputFilePath, 0);
+
     const normalizedOutput = output.replace(/\r\n/g, "\n").trim();
 
     // Return both normalizedOutput and elapsedTimeMs
@@ -170,6 +174,10 @@ const executePy = async (
       4000,
       memoryLimit
     );
+
+    // Clean up temporary files
+    delete_temp(inputFilePath, 0);
+    
     const normalizedOutput = output.replace(/\r\n/g, "\n").trim();
 
     // Return both normalizedOutput and elapsedTimeMs
