@@ -91,7 +91,7 @@ app.post("/run", async (req, res) => {
 
 app.post("/submit", async (req, res) => {
   const token = req.cookies?.token;
-  const { lang = "C++", code, problemId } = req.body;
+  const { language = "C++", code, problemId } = req.body;
 
   if (!code) {
     return res.status(400).json({ success: false, error: "Code not found" });
@@ -120,7 +120,7 @@ app.post("/submit", async (req, res) => {
         .json({ success: false, error: "Problem not found" });
     }
 
-    const filePath = await generateFile(lang, code);
+    const filePath = await generateFile(language, code);
 
     for (const testcase of problem.testcases) {
       const inputFilePath = await generateInputFile(
@@ -130,7 +130,7 @@ app.post("/submit", async (req, res) => {
 
       try {
         let output;
-        switch (lang) {
+        switch (language) {
           case "C++":
             output = await executecpp(filePath, inputFilePath, problem.timel, problem.meml);
             break;

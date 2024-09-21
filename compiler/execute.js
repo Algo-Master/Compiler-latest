@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
+const terminate = require("terminate");
 
 const outputPath = path.join(__dirname, "executables");
 
@@ -19,68 +20,66 @@ const executeCommand = (command, timeLimit, memoryLimit) => {
     const startTime = process.hrtime();
     const startMemoryUsage = process.memoryUsage().heapUsed;
 
-    const child = exec(command, options, (error, stdout, stderr) => {
-      // console.log("executeCommand is earlier here");
-
+    const processx = exec(command, options, (error, stdout, stderr) => {
       // Checking the performance of Compiler
       // Time Statistics
       const endTime = process.hrtime(startTime);
       const elapsedTimeMs = endTime[0] * 1000 + endTime[1] / 1e6; // Convert to milliseconds
       console.log(`Time elapsed: ${elapsedTimeMs} ms`);
 
-      // Memory Usage
+      // Memory Statistics
       const endMemoryUsage = process.memoryUsage().heapUsed;
       const memoryDifference = endMemoryUsage - startMemoryUsage;
       console.log(`Memory used: ${memoryDifference / 1024 / 1024} MB`);
 
+      clearTimeout(timeoutId); // Clear the timeout after execution finishes
+
       if (error) {
         if (error.killed) {
-          return reject(new Error("Execution time exceeded the limit"));
-        }
-        if (error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER") {
-          return reject(new Error("Memory limit exceeded"));
+          console.log("Execution time exceeded the limit");
         }
         return reject(error);
       }
       if (stderr) {
-        return reject(new Error(stderr));
+        return reject(stderr);
       }
       resolve(stdout);
     });
 
-    // setTimeout(() => {
-    //   try {
-    //     console.log("Trying to kill the Child_Process!!");
-    //     child.kill();
-    //   } catch {
-    //     console.log("Child_Process is not getting killed!!");
-    //   }
-    // }, timeLimit);
-
-    // Monitor Total Memory usage of the child process every 100 milliseconds
-    const checkMemoryUsage = setInterval(() => {
-      if (!child.pid) return;
-
-      try {
-        const memoryUsage = process.memoryUsage().heapUsed / 1024 / 1024; // in MB
-        if (memoryUsage > memoryLimit) {
-          child.kill();
-          clearInterval(checkMemoryUsage);
-          reject(new Error("Memory limit exceeded"));
+    // Checks to ensure if Time Limits are managed well
+    const timeoutId = setTimeout(() => {
+      console.log(`Child killed -> ${processx.killed}`);
+      const endTime = process.hrtime(startTime);
+      const elapsedTimeMs = endTime[0] * 1000 + endTime[1] / 1e6; // Convert to milliseconds
+      console.log(`Time elapsed from timeoutId: ${elapsedTimeMs} ms`);
+      terminate(processx.pid, function (err) {
+        if (err) {
+          // you will get an error if you did not supply a valid process.pid
+          console.log("Oopsy error faced but process tree killed??"); // handle errors in your preferred way.
+        } else {
+          console.log("done killing the process"); // terminating the Processes succeeded.
+          // NOTE: The above won't be run in this example as the process itself will be killed before.
         }
-      } catch (err) {
-        child.kill();
-        clearInterval(checkMemoryUsage);
-        reject(new Error("Memory usage check failed"));
-      }
-    }, 100);
-
-    // Additional safety measures
-    child.on("exit", () => {
-      clearInterval(checkMemoryUsage);
-    });
+      });
+      return reject("Time Limit Exceeded");
+    }, timeLimit);
   });
 };
+
+// async function myAsyncFunction() {
+//   try {
+//     const result = await executeCommand(
+//       "o:\\Web_DeV\\Compiler_latest\\compiler\\test\\cpp_test\\sum.exe < O:\\Web_DeV\\Compiler_latest\\compiler\\test\\cpp_test\\input.txt",
+//       1000,
+//       50
+//     );
+//     console.log(result);
+//   } catch (error) {
+//     console.error("Error:", error);
+//   }
+// }
+
+// myAsyncFunction();
 
 const delete_temp = async (path_temp, del_time) => {
   setTimeout(() => {
@@ -88,7 +87,7 @@ const delete_temp = async (path_temp, del_time) => {
       fs.unlinkSync(path_temp);
     } catch {
       console.log(
-        "The File to be deleted doesn't exist or is busy getting executed!!"
+        `The File ${path_temp} to be deleted doesn't exist or is busy getting executed!!`
       );
     }
   }, del_time);
@@ -98,7 +97,7 @@ const delete_temp = async (path_temp, del_time) => {
 const executecpp = async (
   filePath,
   inputFilePath,
-  timeLimit = 4000,
+  timeLimit = 2,
   memoryLimit = 64
 ) => {
   const jobId = path.basename(filePath).split(".")[0];
@@ -122,66 +121,73 @@ const executecpp = async (
     });
 
     const execfile = path.join(exedir, `.\\${outputFilename}`);
+    // const execfile = path.join(exedir, `./${outputFilename}`);
 
     // Execute the compiled code
-    // const runCommand = `cd ${outputPath} && .\\${outputFilename} < ${inputFilePath}`;
     const runCommand = `${execfile} < ${inputFilePath}`;
     // const runcommand = `./${jobId}.out < ${inputFilePath}`;
-    const output = await executeCommand(runCommand, timeLimit, memoryLimit);
+    const output = await executeCommand(
+      runCommand,
+      timeLimit * 1000,
+      memoryLimit
+    );
+
+    // Clean up temporary files
+    delete_temp(inputFilePath, 0);
+    delete_temp(executable, 0);
 
     const normalizedOutput = output.replace(/\r\n/g, "\n").trim();
     return normalizedOutput;
   } catch (error) {
+
+    delete_temp(inputFilePath, 500);
+    delete_temp(executable, 500);
     throw error;
-  } finally {
-    // Clean up temporary files
-    delete_temp(inputFilePath, timeLimit + 1000);
-    delete_temp(executable, timeLimit + 1000);
   }
 };
 
-// executejava.js
-const executejava = async (
-  filePath,
-  inputFilePath,
-  timeLimit = 4000,
-  memoryLimit = 64
-) => {
-  const command = `java ${filePath} < ${inputFilePath}`;
+// // executejava.js
+// const executejava = async (
+//   filePath,
+//   inputFilePath,
+//   timeLimit = 4000,
+//   memoryLimit = 64
+// ) => {
+//   const command = `java ${filePath} < ${inputFilePath}`;
 
-  await executeCommand(command, timeLimit, memoryLimit)
-    .then((stdout) => {
-      const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
-      return normalizedOutput;
-    })
-    .catch((error) => {
-      throw error;
-    })
-    .finally(() => {
-      delete_temp(inputFilePath, timeLimit + 1000);
-    });
-};
+//   await executeCommand(command, timeLimit, memoryLimit)
+//     .then((stdout) => {
+//       const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
+//       return normalizedOutput;
+//     })
+//     .catch((error) => {
+//       throw error;
+//     })
+//     .finally(() => {
+//       // delete_temp(inputFilePath, timeLimit + 100);
+//     });
+// };
 
-// executePy.js
-const executePy = async (
-  filePath,
-  inputFilePath,
-  timeLimit = 4000,
-  memoryLimit = 64
-) => {
-  const command = `python ${filePath} < ${inputFilePath}`;
+// // executePy.js
+// const executePy = async (
+//   filePath,
+//   inputFilePath,
+//   timeLimit = 4000,
+//   memoryLimit = 64
+// ) => {
+//   const command = `python ${filePath} < ${inputFilePath}`;
 
-  await executeCommand(command, timeLimit, memoryLimit)
-    .then((stdout) => {
-      const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
-      return normalizedOutput;
-    })
-    .catch((error) => {
-      throw error;
-    })
-    .finally(() => {
-      delete_temp(inputFilePath, timeLimit + 1000);
-    });
-};
+//   await executeCommand(command, timeLimit, memoryLimit)
+//     .then((stdout) => {
+//       const normalizedOutput = stdout.replace(/\r\n/g, "\n").trim();
+//       return normalizedOutput;
+//     })
+//     .catch((error) => {
+//       throw error;
+//     })
+//     .finally(() => {
+//       // delete_temp(inputFilePath, timeLimit + 100);
+//     });
+// };
 
-module.exports = { executecpp, executejava, executePy };
+module.exports = { executecpp, executeCommand };

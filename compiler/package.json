@@ -4,11 +4,11 @@
   "description": "Compiler Backend Dependencies",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "https://githum.com/Algo-Master/Online-Compiler"
+    "url": "https://github.com/Algo-Master/Compiler-latest"
   },
   "author": "Rimo",
   "license": "ISC",
@@ -19,6 +19,10 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.3",
+    "terminate": "^2.8.0",
     "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }
