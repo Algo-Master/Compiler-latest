@@ -76,7 +76,7 @@ const delete_temp = async (path_temp, del_time) => {
   }, del_time);
 };
 
-// executecpp.js
+// executecpp
 const executecpp = async (
   filePath,
   inputFilePath,
@@ -130,7 +130,7 @@ const executecpp = async (
   }
 };
 
-executejava.js;
+// executejava
 const executejava = async (
   filePath,
   inputFilePath,
@@ -159,7 +159,7 @@ const executejava = async (
   }
 };
 
-// executePy.js
+// executePy
 const executePy = async (
   filePath,
   inputFilePath,

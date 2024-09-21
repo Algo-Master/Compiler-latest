@@ -46,7 +46,7 @@ app.post("/run", async (req, res) => {
   }
   if (!token) {
     return res
-      .status(401)
+      .status(400)
       .json({ success: false, error: "Unauthorized access" });
   }
 
@@ -56,7 +56,7 @@ app.post("/run", async (req, res) => {
       return res.status(400).json({ error: "Token tampered" });
     case 2:
       return res
-        .status(401)
+        .status(400)
         .json({ error: "Token expired!! Please log in again." });
   }
 
@@ -66,23 +66,26 @@ app.post("/run", async (req, res) => {
     //Create a file for CustomInput
     const inputFilePath = await generateInputFile(input, filePath);
 
-    let output;
+    let result;
     switch (language) {
       case "C++":
-        output = await executecpp(filePath, inputFilePath);
+        result = await executecpp(filePath, inputFilePath);
         break;
       case "Java":
-        output = await executejava(filePath, inputFilePath);
+        result = await executejava(filePath, inputFilePath);
         break;
       case "Python3":
-        output = await executePy(filePath, inputFilePath);
+        result = await executePy(filePath, inputFilePath);
         break;
       default:
         return res
           .status(400)
           .json({ success: false, error: "Unsupported language" });
     }
-    res.status(200).json({ success: true, output });
+
+    const { output, elapsedTimeMs } = result;
+
+    res.status(200).json({ success: true, output, elapsedTimeMs });
   } catch (error) {
     // Always send 200 status with error messages for frontend understanding
     res.status(200).json({ success: false, message: error.message });
@@ -122,6 +125,8 @@ app.post("/submit", async (req, res) => {
 
     const filePath = await generateFile(language, code);
 
+    let totalElapsedTime = 0; // To keep track of total execution time
+
     for (const testcase of problem.testcases) {
       const inputFilePath = await generateInputFile(
         testcase.testinput,
@@ -129,16 +134,16 @@ app.post("/submit", async (req, res) => {
       );
 
       try {
-        let output;
+        let result;
         switch (language) {
           case "C++":
-            output = await executecpp(filePath, inputFilePath, problem.timel, problem.meml);
+            result = await executecpp(filePath, inputFilePath, problem.timel, problem.meml);
             break;
           case "Java":
-            output = await executejava(filePath, inputFilePath, problem.timel, problem.meml);
+            result = await executejava(filePath, inputFilePath, problem.timel, problem.meml);
             break;
           case "Python3":
-            output = await executePy(filePath, inputFilePath, problem.timel, problem.meml);
+            result = await executePy(filePath, inputFilePath, problem.timel, problem.meml);
             break;
           default:
             return res
@@ -146,7 +151,9 @@ app.post("/submit", async (req, res) => {
               .json({ success: false, error: "Unsupported language" });
         }
 
-        // Normalize expected output
+        const { output, elapsedTimeMs } = result;
+
+        // Normalize and compare output
         const cleanedOutput = output.trim();
         const expectedOutput = testcase.testoutput
           .replace(/\r\n/g, "\n")
@@ -159,13 +166,13 @@ app.post("/submit", async (req, res) => {
             failedTestCase: testcase.testinput,
           });
         }
+
+        // Add the execution time for this test case to the total
+        totalElapsedTime += elapsedTimeMs;
       } catch (error) {
+        // Handle specific errors
         let status = 400;
-        if (error.message.includes("time")) {
-          status = 408; // Request Timeout
-        } else if (error.message.includes("Memory")) {
-          status = 413; // Payload Too Large
-        }
+
         return res.status(status).json({
           success: false,
           error: error.message,
@@ -179,6 +186,7 @@ app.post("/submit", async (req, res) => {
       success: true,
       verdict: "Accepted",
       output: "Accepted",
+      elapsedTime: totalElapsedTime
     });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
