@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const corsOptions = {
-  origin: "http://localhost:5173", // Replace with your frontend origin
+  origin: "https://algohub7.vercel.app", // Replace with your frontend origin
   credentials: true, // Include cookies if necessary
   // allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   // methods: 'GET, POST, PUT, DELETE, OPTIONS', // Allowed HTTP methods
@@ -61,6 +61,9 @@ app.post("/run", async (req, res) => {
       .status(400)
       .json({ success: false, error: "Unauthorized access" });
   }
+
+  // Checks if token is found
+  console.log("Token found successfully");
 
   const verified = authenticate(token);
   switch (verified) {
