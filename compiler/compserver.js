@@ -9,6 +9,7 @@ const cors = require("cors");
 
 const corsOptions = {
   origin: "https://algohub7.vercel.app", // Replace with your frontend origin
+  // origin: "http://localhost:5173",
   credentials: true, // Include cookies if necessary
   // allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   // methods: 'GET, POST, PUT, DELETE, OPTIONS', // Allowed HTTP methods
@@ -104,7 +105,12 @@ app.post("/run", async (req, res) => {
     // await delete_temp(filePath, 2000);
     // await delete_temp(inputFilePath, 2000);
 
-    res.status(200).json({ success: true, output, elapsedTimeMs, memoryOcc: memoryDifference});
+    res.status(200).json({
+      success: true,
+      output,
+      elapsedTimeMs,
+      memoryOcc: memoryDifference,
+    });
   } catch (error) {
     // await delete_temp(filePath, 2000);
     // await delete_temp(inputFilePath, 2000);
@@ -160,13 +166,28 @@ app.post("/submit", async (req, res) => {
         let result;
         switch (language) {
           case "C++":
-            result = await executecpp(filePath, inputFilePath, problem.timel, problem.meml);
+            result = await executecpp(
+              filePath,
+              inputFilePath,
+              problem.timel,
+              problem.meml
+            );
             break;
           case "Java":
-            result = await executejava(filePath, inputFilePath, problem.timel, problem.meml);
+            result = await executejava(
+              filePath,
+              inputFilePath,
+              problem.timel,
+              problem.meml
+            );
             break;
           case "Python3":
-            result = await executePy(filePath, inputFilePath, problem.timel, problem.meml);
+            result = await executePy(
+              filePath,
+              inputFilePath,
+              problem.timel,
+              problem.meml
+            );
             break;
           default:
             return res
@@ -211,7 +232,7 @@ app.post("/submit", async (req, res) => {
       verdict: "Accepted",
       output: "Accepted",
       elapsedTime: totalElapsedTime,
-      memoryOcc: totalMemoryUsed
+      memoryOcc: totalMemoryUsed,
     });
   } catch (error) {
     return res.status(500).json({ success: false, error: error });
