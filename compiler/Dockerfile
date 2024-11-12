@@ -4,7 +4,7 @@ FROM node:20-alpine
 # Set the working directory inside the container
 WORKDIR /compiler
 
-# Install G++, jdk21 and 
+# Install G++, jdk21 and python
 RUN apk update && apk add --no-cache g++ openjdk21-jdk python3
 
 # Copy only the package.json and package-lock.json files and install dependencies.
