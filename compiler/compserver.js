@@ -9,10 +9,11 @@ const cors = require("cors");
 
 const corsOptions = {
   // origin: "https://algohub7.vercel.app", // Replace with your frontend origin
-  origin: "http://localhost:5173",
+  // origin: "http://localhost:5173",
+  origin: "*",
   credentials: true, // Include cookies if necessary
-  // allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  // methods: 'GET, POST, PUT, DELETE, OPTIONS', // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: 'GET, POST, PUT, DELETE, OPTIONS', // Allowed HTTP methods
   // maxAge: 3600, // How long (in seconds) the options preflight request can be cached
 };
 
