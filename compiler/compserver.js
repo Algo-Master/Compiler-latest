@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const corsOptions = {
-  origin: "https://algohub7.vercel.app", // Replace with your frontend origin
+  origin: "https://algohub-nu.vercel.app", // Replace with your frontend origin
   // origin: "http://localhost:5173",
   // origin: "*", // * doesnt allow the tokens to be included
   credentials: true, // Include cookies if necessary
