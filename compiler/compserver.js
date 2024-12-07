@@ -62,11 +62,7 @@ app.post("/run", async (req, res) => {
   if (!jwt) {
     return res
       .status(400)
-      .json({
-        success: false,
-        error: "Unauthorized access",
-        webtoken: `Locate the token in this request plz!!`,
-      }).send(req);
+      .send(req);
   }
 
   // Checks if token is found
