@@ -8,9 +8,8 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const corsOptions = {
-  origin: "https://algohub-nu.vercel.app", // Replace with your frontend origin
+  origin: ["https://algohub-nu.vercel.app", "https://algohub7.vercel.app"], // Replace with your frontend origin
   // origin: "http://localhost:5173",
-  // origin: "*", // * doesnt allow the tokens to be included
   credentials: true, // Include cookies if necessary
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   methods: 'GET, POST, PUT, DELETE, OPTIONS', // Allowed HTTP methods
@@ -44,7 +43,7 @@ const delete_temp = async (path_temp, del_time) => {
 
 app.get("/", (req, res) => {
   res.json({
-    OS: "Running on Ubuntu Linux",
+    OS: "Running on Linux Server",
     Compilers_supported: "g++, JAVA 21, python3",
   });
 });
