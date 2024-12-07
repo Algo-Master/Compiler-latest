@@ -57,14 +57,16 @@ app.post("/run", async (req, res) => {
   if (!input) {
     return res.status(400).json({ success: false, error: "Input not found" });
   }
+  console.log("Gonna Check the presence of the token");
+
   if (!jwt) {
     return res
       .status(400)
       .json({
         success: false,
         error: "Unauthorized access",
-        webtoken: `Locate the token in this request plz!! ${req}`,
-      });
+        webtoken: `Locate the token in this request plz!!`,
+      }).send(req);
   }
 
   // Checks if token is found
