@@ -49,7 +49,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/run", async (req, res) => {
-  const token = req.cookies?.token;
+  const jwt = req.cookies?.token;
   const { language = "C++", code, manualTestCase: input } = req.body;
   if (!code) {
     return res.status(400).json({ success: false, error: "Code not found" });
@@ -57,7 +57,7 @@ app.post("/run", async (req, res) => {
   if (!input) {
     return res.status(400).json({ success: false, error: "Input not found" });
   }
-  if (!token) {
+  if (!jwt) {
     return res
       .status(400)
       .json({ success: false, error: "Unauthorized access" });
@@ -66,7 +66,7 @@ app.post("/run", async (req, res) => {
   // Checks if token is found
   console.log("Token found successfully");
 
-  const verified = authenticate(token);
+  const verified = authenticate(jwt);
   switch (verified) {
     case 0:
       return res.status(400).json({ error: "Token tampered" });
