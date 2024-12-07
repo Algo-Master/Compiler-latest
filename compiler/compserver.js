@@ -60,9 +60,16 @@ app.post("/run", async (req, res) => {
   console.log("Gonna Check the presence of the token");
 
   if (!jwt) {
-    return res
-      .status(400)
-      .send(req);
+    return res.status(400).send({
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+      body: req.body,
+      query: req.query,
+      params: req.params,
+      cookie: req.cookies,
+      cookiesigned: req.signedCookies
+    });
   }
 
   // Checks if token is found
