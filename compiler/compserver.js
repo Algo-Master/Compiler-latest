@@ -63,7 +63,7 @@ app.post("/run", async (req, res) => {
       .json({
         success: false,
         error: "Unauthorized access",
-        webtoken: `Where is this data? -> ${jwt}`,
+        webtoken: `Locate the token in this request plz!! ${req}`,
       });
   }
 
