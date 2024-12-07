@@ -11,8 +11,8 @@ const corsOptions = {
   origin: ["https://algohub-nu.vercel.app", "https://algohub7.vercel.app"], // Replace with your frontend origin
   // origin: "http://localhost:5173",
   credentials: true, // Include cookies if necessary
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  methods: 'GET, POST, PUT, DELETE, OPTIONS', // Allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  methods: "GET, POST, PUT, DELETE, OPTIONS", // Allowed HTTP methods
   // maxAge: 3600, // How long (in seconds) the options preflight request can be cached
 };
 
@@ -60,7 +60,11 @@ app.post("/run", async (req, res) => {
   if (!jwt) {
     return res
       .status(400)
-      .json({ success: false, error: "Unauthorized access", webtoken: jwt });
+      .json({
+        success: false,
+        error: "Unauthorized access",
+        webtoken: `Where is this data? -> ${jwt}`,
+      });
   }
 
   // Checks if token is found
