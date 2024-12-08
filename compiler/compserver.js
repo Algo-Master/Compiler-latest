@@ -58,7 +58,8 @@ app.post("/run", async (req, res) => {
     return res.status(400).json({ success: false, error: "Input not found" });
   }
   console.log("Gonna Check the presence of the token");
-  const token = authHeader.split(" ")[1]; // Extract token (e.g., "Bearer <token>")
+  // Extract and validate the token safely
+  const token = authHeader?.split(" ")[1] ?? null; // Safe extraction using optional chaining and nullish coalescing token (e.g., "Bearer <token>")
   if (!token) {
     return res.status(400).json({
       success: false,
@@ -131,7 +132,7 @@ app.post("/submit", async (req, res) => {
     return res.status(400).json({ success: false, error: "Code not found" });
   }
   console.log("Gonna Check the presence of the token");
-  const token = authHeader.split(" ")[1]; // Extract token (e.g., "Bearer <token>")
+  const token = authHeader?.split(" ")[1] ?? null; // Safe extraction using optional chaining and nullish coalescing token (e.g., "Bearer <token>")
   if (!token) {
     return res.status(400).json({
       success: false,
