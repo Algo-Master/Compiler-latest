@@ -49,7 +49,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/run", async (req, res) => {
-  const jwt = req.cookies?.token;
+  const authHeader = req.headers.authorization;
   const { language = "C++", code, manualTestCase: input } = req.body;
   if (!code) {
     return res.status(400).json({ success: false, error: "Code not found" });
@@ -58,17 +58,11 @@ app.post("/run", async (req, res) => {
     return res.status(400).json({ success: false, error: "Input not found" });
   }
   console.log("Gonna Check the presence of the token");
-
-  if (!jwt) {
-    return res.status(400).send({
-      method: req.method,
-      url: req.url,
-      headers: req.headers,
-      body: req.body,
-      query: req.query,
-      params: req.params,
-      cookie: req.cookies,
-      cookiesigned: req.signedCookies
+  const token = authHeader.split(" ")[1]; // Extract token (e.g., "Bearer <token>")
+  if (!token) {
+    return res.status(400).json({
+      success: false,
+      message: "Unauthorized access -> Token not found",
     });
   }
 
