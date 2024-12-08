@@ -214,7 +214,7 @@ app.post("/submit", async (req, res) => {
           .trim();
 
         if (cleanedOutput !== expectedOutput) {
-          return res.status(400).json({
+          return res.status(200).json({
             success: false,
             verdict: "Wrong Answer",
             failedTestCase: testcase.testinput,
