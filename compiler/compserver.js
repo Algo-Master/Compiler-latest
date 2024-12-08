@@ -124,17 +124,23 @@ app.post("/run", async (req, res) => {
 });
 
 app.post("/submit", async (req, res) => {
-  const token = req.cookies?.token;
+  const authHeader = req.headers.authorization;
   const { language = "C++", code, problemId } = req.body;
 
   if (!code) {
     return res.status(400).json({ success: false, error: "Code not found" });
   }
+  console.log("Gonna Check the presence of the token");
+  const token = authHeader.split(" ")[1]; // Extract token (e.g., "Bearer <token>")
   if (!token) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Unauthorized access" });
+    return res.status(400).json({
+      success: false,
+      message: "Unauthorized access -> Token not found",
+    });
   }
+
+  // Checks if token is found
+  console.log("Token found successfully");
 
   const verified = authenticate(token);
   switch (verified) {
