@@ -69,7 +69,7 @@ app.post("/run", async (req, res) => {
   // Checks if token is found
   console.log("Token found successfully");
 
-  const verified = authenticate(jwt);
+  const verified = authenticate(token);
   switch (verified) {
     case 0:
       return res.status(400).json({ error: "Token tampered" });
