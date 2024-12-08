@@ -226,7 +226,7 @@ app.post("/submit", async (req, res) => {
         totalMemoryUsed += memoryDifference;
       } catch (error) {
         // Handle specific errors
-        let status = 400;
+        let status = 200;
 
         return res.status(status).json({
           success: false,
